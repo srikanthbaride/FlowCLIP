@@ -1,0 +1,67 @@
+pretrain:
+resume:
+seed: 1024
+data:
+    dataset: hmdb51
+    modality: RGB+Flow
+    num_segments: 8
+    seg_length: 1
+    split: 1
+    batch_size: 64
+    workers: 8
+    gpus: 2
+    num_classes: 51
+    image_tmpl: 'img_{:05d}.jpg'
+    train_list: '/path/to/lists/hmdb51/train_rgb_split1.txt'
+    val_list: '/path/to/lists/hmdb51/val_rgb_split1.txt'
+    label_list: 'lists/hmdb51_labels.csv'
+    index_bias: 1
+    input_size: 224
+    randaug:
+        N: 0
+        M: 0
+    # --- Optical flow settings ---
+    use_flow: True
+    flow_tmpl: 'flow_{}_{:05d}.jpg'
+    # flow_root should point to the directory that contains per-video
+    # sub-directories of pre-computed flow frames, e.g.:
+    #   /path/to/hmdb51_flow/
+    #       ├── brush_hair/
+    #       │   └── April_09_brush_hair_u_nm_np1_ba_goo_0/
+    #       │       ├── flow_x_00001.jpg
+    #       │       ├── flow_y_00001.jpg
+    #       │       └── ...
+    #       └── ...
+    # Each leaf directory name must match the corresponding RGB directory name.
+    # Run datasets/flow_utils.py::compute_optical_flow() to pre-compute frames.
+    flow_root: '/path/to/optical/flow/frames'
+network:
+    arch: ViT-B/16
+    init: True
+    drop_out: 0.0
+    emb_dropout: 0.0
+    type: clip_hmdb
+    sim_header: "Transf"
+    fix_text: False
+    fix_img: False
+    describe:
+solver:
+    type: cosine
+    epochs: 50
+    start_epoch: 0
+    epoch_offset: 0
+    optim: adamw
+    lr: 5.e-6
+    lr_warmup_step: 5
+    momentum: 0.9
+    weight_decay: 0.2
+    lr_decay_step: 15
+    lr_decay_factor: 0.1
+    clip_gradient: 20
+    loss_type: nll
+    evaluate: False
+    ratio: 1
+    f_ratio: 10
+logging:
+    print_freq: 10
+    eval_freq: 1
