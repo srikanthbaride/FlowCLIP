@@ -5,7 +5,7 @@
 
 ## Overview
 
-![ActionCLIP](ActionCLIP.png)
+![ActionCLIP](ActionCLIP_modified.png)
 
 
 ## Content 
