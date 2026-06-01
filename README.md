@@ -41,7 +41,7 @@ The code is built with following libraries:
 - dotmap
 - yaml
 - csv
-- [OpenCV](https://opencv.org/) or [RAFT](https://github.com/princeton-vl/RAFT) (for optical flow extraction)
+- [OpenCV](https://opencv.org/) (Farneback dense optical flow, used for flow extraction)
 
 For video data pre-processing, you may need [ffmpeg](https://www.ffmpeg.org/).
 
@@ -59,14 +59,16 @@ FlowCLIP introduces optical flow as an additional temporal modality on top of th
 
 ### Extracting Optical Flow
 
-Use the provided helper script `utils/extract_optical_flow.py` to extract per-frame optical flow from the decoded RGB frames:
+Use the helper in `datasets/flow_utils.py` to pre-compute per-frame optical flow from the decoded RGB frames. It uses OpenCV's Farneback dense optical flow and writes the `flow_x_*.jpg` / `flow_y_*.jpg` pairs expected by the dataset loader:
 
-```
-# TV-L1 (via OpenCV)
-python utils/extract_optical_flow.py --method tvl1 --src /path/to/rgb_frames --dst /path/to/flow_frames
+```python
+from datasets.flow_utils import compute_optical_flow
 
-# RAFT
-python utils/extract_optical_flow.py --method raft --src /path/to/rgb_frames --dst /path/to/flow_frames
+# Run per video directory of RGB frames:
+compute_optical_flow(
+    video_dir='/path/to/rgb_frames/<video_id>',
+    output_dir='/path/to/flow_frames/<video_id>',
+)
 ```
 
 ### Directory Structure
@@ -83,20 +85,21 @@ Enable the flow stream in the YAML config:
 
 ```yaml
 data:
-  use_optical_flow: True
-  flow_prefix: flow_
+  use_flow: True
+  flow_tmpl: 'flow_{}_{:05d}.jpg'
+  flow_root: '/path/to/optical/flow/frames'
 ```
 
 Then launch training with the flow-enabled config:
 
 ```
 # train with optical flow
-bash scripts/run_train.sh ./configs/k400/k400_train_flow.yaml
+bash scripts/run_train.sh ./configs/hmdb51/hmdb_flow.yaml
 ```
 
 **Notes**
 - Flow frames are stored as JPEG (x and y components in separate files).
-- RGB and flow features are combined via feature-level fusion before the temporal Transformer.
+- RGB and flow are combined via **late fusion**: each stream is encoded and temporally aggregated independently, then blended with a learnable scalar α (`fused = α·rgb + (1−α)·flow`, α clamped to [0, 1]) before the contrastive loss.
 - The flow stream improves accuracy on motion-intensive classes.
 
 ## Pretrained Models
@@ -169,10 +172,10 @@ bash scripts/run_train.sh  ./configs/hmdb51/hmdb_train.yaml
 bash scripts/run_train.sh  ./configs/ucf101/ucf_train.yaml
 ```
 
-- To train with **optical flow** (FlowCLIP) on Kinetics-400, you can run:
+- To train with **optical flow** (FlowCLIP) on HMDB51, you can run:
 ```
 # train with optical flow
-bash scripts/run_train.sh  ./configs/k400/k400_train_flow.yaml
+bash scripts/run_train.sh  ./configs/hmdb51/hmdb_flow.yaml
 ```
 
 More training details, you can find in [configs/README.md](configs/README.md)
