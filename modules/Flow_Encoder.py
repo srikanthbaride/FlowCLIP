@@ -37,4 +37,5 @@ class FlowCLIP(nn.Module):
         # mismatch while remaining compatible with encode_image's native dtype.
         weight_dtype = self.flow_proj.weight.dtype
         flow_3ch = self.flow_proj(flow.to(weight_dtype))
+        return self.model.encode_image(flow_3ch)
         
