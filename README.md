@@ -12,7 +12,37 @@ FlowCLIP builds on the original ActionCLIP codebase and adds **optical flow** as
 
 ## Overview
 
-![ActionCLIP](ActionCLIP_modified.png)
+FlowCLIP keeps ActionCLIP's RGB + text contrastive backbone and adds a parallel optical-flow
+stream, fused with a learnable scalar α before the similarity loss:
+
+```mermaid
+flowchart LR
+    V([Videos]):::vid --> VE[Video Encoder]:::vid --> VR[Video<br/>Representations]:::vid
+    F([Optical Flow]):::flow --> FE["FlowCLIP Encoder<br/>2&#8594;3 Conv2d"]:::flow --> FR[Flow<br/>Representations]:::flow
+    L([Labels]):::txt --> TE[Text Encoder]:::txt --> TR[Text<br/>Representations]:::txt
+
+    VR --> A(("&alpha; Fusion<br/>learnable scalar")):::fuse
+    FR --> A
+    A --> FZ[Fused RGB+Flow<br/>Representation]:::fuse
+
+    FZ --> SIM{{Similarity<br/>Calculation}}:::sim
+    TR --> SIM
+    SIM --> MAT[Similarity Matrix]:::sim
+    MAT -->|KL Loss| GT[/Ground-truth<br/>diagonal/]:::gt
+
+    classDef vid fill:#cfe0fb,stroke:#3b6fb6,color:#13314f;
+    classDef flow fill:#cdeccd,stroke:#3f9142,color:#163a18;
+    classDef txt fill:#f8d0d0,stroke:#c0504d,color:#4f1717;
+    classDef fuse fill:#fde2c0,stroke:#e08e2b,color:#6b3d05;
+    classDef sim fill:#e7e2f3,stroke:#7a6bb0,color:#2c2350;
+    classDef gt fill:#ffffff,stroke:#555555,color:#222222;
+```
+
+**New in FlowCLIP** (green / orange): the **FlowCLIP Encoder** — a learnable 2&#8594;3 `Conv2d` that
+projects optical-flow (x, y) maps into the shared CLIP ViT image encoder — and the **learnable α
+fusion** that blends the RGB and flow representations (`fused = α·rgb + (1−α)·flow`, with α clamped
+to [0, 1]) before the contrastive similarity loss. Each stream has its own temporal Transformer
+head; fusion is performed on the resulting clip-level embeddings (late fusion).
 
 ## Content
 - [Prerequisites](#prerequisites)
