@@ -1,0 +1,26 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\srikanth.baride\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\srikanth.baride\FlowCLIP_prep
+plugins: anyio-4.12.1
+collecting ... collected 17 items
+
+tests/test_configs.py::test_configs_are_present PASSED                   [  5%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\hmdb51\\hmdb_flow.yaml] PASSED [ 11%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\hmdb51\\hmdb_test.yaml] PASSED [ 17%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\hmdb51\\hmdb_train.yaml] PASSED [ 23%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\hmdb51\\hmdb_zero_shot.yaml] PASSED [ 29%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\k400\\k400_test.yaml] PASSED [ 35%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\k400\\k400_train.yaml] PASSED [ 41%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\k400\\k400_zero_shot.yaml] PASSED [ 47%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\ucf101\\ucf_test.yaml] PASSED [ 52%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\ucf101\\ucf_train.yaml] PASSED [ 58%]
+tests/test_configs.py::test_config_parses_with_safe_load[configs\\ucf101\\ucf_zero_shot.yaml] PASSED [ 64%]
+tests/test_configs.py::test_flow_config_declares_flow_keys PASSED        [ 70%]
+tests/test_flow_encoder_clip.py::test_flow_forward_returns_clip_embedding PASSED [ 76%]
+tests/test_flow_encoder_unit.py::test_flow_proj_is_2_to_3_conv PASSED    [ 82%]
+tests/test_flow_encoder_unit.py::test_forward_returns_embedding_shape PASSED [ 88%]
+tests/test_flow_encoder_unit.py::test_forward_feeds_three_channels_to_encoder PASSED [ 94%]
+tests/test_flow_encoder_unit.py::test_forward_casts_input_to_weight_dtype PASSED [100%]
+
+============================= 17 passed in 5.51s ==============================
