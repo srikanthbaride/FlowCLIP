@@ -87,6 +87,11 @@ We have successfully trained on [Kinetics](https://deepmind.com/research/open-so
 
 FlowCLIP introduces optical flow as an additional temporal modality on top of the RGB stream used by ActionCLIP. The flow stream captures motion cues that complement appearance features, improving recognition on motion-intensive action classes.
 
+<p align="center">
+  <img src="assets/flow_example.png" alt="RGB frame and its dense optical flow (HSV colour-coding: hue = motion direction, saturation = magnitude)" width="80%">
+</p>
+<p align="center"><em>An RGB frame (left) and its dense optical flow (right), HSV-coded so hue encodes motion direction and saturation encodes magnitude. The flow stream isolates the moving subject from the static background.</em></p>
+
 ### Extracting Optical Flow
 
 Use the helper in `datasets/flow_utils.py` to pre-compute per-frame optical flow from the decoded RGB frames. It uses OpenCV's Farneback dense optical flow and writes the `flow_x_*.jpg` / `flow_y_*.jpg` pairs expected by the dataset loader:
