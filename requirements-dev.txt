@@ -1,0 +1,4 @@
+# Test/dev dependencies for FlowCLIP.
+# Runtime deps are declared in environment.yml / setup.py.
+pytest>=7.0
+pyyaml>=6.0

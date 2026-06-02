@@ -53,6 +53,8 @@ head; fusion is performed on the resulting clip-level embeddings (late fusion).
   * [Kinetics-400](#kinetics-400)
   * [Hmdb51 && UCF101](#HMDB51&&UCF101)
 - [Testing](#testing)
+- [Results](#results)
+- [Unit tests](#unit-tests)
 - [Training](#training)
 - [Maintainer](#maintainer)
 - [Contributors](#Contributors)
@@ -135,11 +137,16 @@ bash scripts/run_train.sh ./configs/hmdb51/hmdb_flow.yaml
 **Notes**
 - Flow frames are stored as JPEG (x and y components in separate files).
 - RGB and flow are combined via **late fusion**: each stream is encoded and temporally aggregated independently, then blended with a learnable scalar α (`fused = α·rgb + (1−α)·flow`, α clamped to [0, 1]) before the contrastive loss.
-- The flow stream improves accuracy on motion-intensive classes.
+- The flow stream is *hypothesised* to help on motion-intensive classes; this has not yet been measured for this fork (see [Results](#results)).
 
 ## Pretrained Models
 
 Training video models is computationally expensive. Here we provide some of the pretrained models. We provide a large set of trained models in the ActionCLIP [MODEL_ZOO.md](MODEL_ZOO.md).
+
+> **Note:** the tables below are the **RGB-only baselines reported by the
+> original ActionCLIP paper** (reproduced here for reference). They are
+> *not* FlowCLIP (RGB+Flow) results. The optical-flow contribution of this
+> fork has not been benchmarked yet — see [Results](#results).
 
 ### Kinetics-400
 
@@ -158,13 +165,13 @@ On HMDB51 and UCF101 datasets, the accuracy(k400 pretrained) is reported under t
 
 | model | n-frame | top1 Acc(single-crop) | checkpoint |
 | :-----------------: | :-----------: | :-------------: |:---------------------------------------------------------: |
-|ViT-B/16 | 32 | 76.2% | [link]()
+|ViT-B/16 | 32 | 76.2% | _(ActionCLIP RGB baseline; checkpoint not yet released)_
 
 #### UCF101
 
 | model | n-frame | top1 Acc(single-crop) | checkpoint |
 | :-----------------: | :-----------: | :-------------: |:---------------------------------------------------------: |
-|ViT-B/16 | 32 | 97.1% | [link]()
+|ViT-B/16 | 32 | 97.1% | _(ActionCLIP RGB baseline; checkpoint not yet released)_
 
 ## Testing
 To test the downloaded pretrained models on Kinetics or HMDB51 or UCF101, you can run `scripts/run_test.sh`. For example:
@@ -186,6 +193,25 @@ bash scripts/run_test.sh  ./configs/k400/k400_ft_zero_shot.yaml
 # zero-shot
 bash scripts/run_test.sh  ./configs/hmdb51/hmdb_ft_zero_shot.yaml
 ```
+
+## Results
+
+A detailed, honest breakdown lives in [`results/README.md`](results/README.md). In short:
+
+- **Verified in this repo:** the flow encoder produces correct `(B, 512)` embeddings through CLIP ViT-B/16 (CPU smoke test, [`results/test_run.log`](results/test_run.log)).
+- **Inherited baselines:** the K400/HMDB51/UCF101 tables above are the original ActionCLIP **RGB-only** numbers, not this fork's flow results.
+- **Pending:** end-to-end RGB+Flow accuracy has **not** been measured yet — it needs pre-computed flow frames, a fine-tuned flow checkpoint, and a GPU run of `python test.py --config configs/hmdb51/hmdb_flow.yaml`.
+
+## Unit tests
+
+Lightweight CPU tests cover the flow projection, the forward contract, and config loading (no dataset or GPU required):
+
+```
+pip install -r requirements-dev.txt
+pytest -q
+```
+
+See [`tests/README.md`](tests/README.md) for the breakdown.
 
 ## Training
 We provided several examples to train ActionCLIP with this repo:
