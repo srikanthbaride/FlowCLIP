@@ -3,7 +3,9 @@
 This file separates what has been **measured in this repository** from
 numbers **inherited from upstream ActionCLIP** and from results that are
 **not yet produced**. Nothing here is a placeholder dressed up as a
-measurement.
+measurement. §4 (added 2026-06) is a *preliminary, proof-of-concept*
+encoding comparison — measured here, but explicitly **not**
+publication-grade, and distinct from the end-to-end run still pending in §3.
 
 ## 1. Verified in this repo
 
@@ -78,3 +80,50 @@ table below.
 > The claim that "the flow stream improves accuracy on motion-intensive
 > classes" is a **hypothesis pending the measurement above**, not a
 > reported result.
+
+## 4. Encoding comparison — frozen CLIP + linear probe (preliminary, proof-of-concept)
+
+A separate, lighter-weight experiment from the end-to-end fine-tuning in §3.
+Here the CLIP ViT-B/16 backbone is **frozen** and only a linear
+(logistic-regression) probe is trained on cached features, so any difference
+between rows reflects the **flow encoding**, not the training budget. This is
+**not** the fine-tuned RGB+Flow result of §3 (which remains unmeasured); it is a
+controlled probe of *how to represent flow* for a frozen vision-language encoder.
+
+**Setup.** HMDB-51 proof-of-concept split (1,428 train / 612 test, 51 classes,
+seed = 1); A100 High-RAM on Colab; optical flow via Farneback; CLIP ViT-B/16
+features L2-normalized (512-d); logistic-regression probe (`max_iter=2000`,
+`C=1.0`); late fusion = concatenation of L2-normed RGB + flow features (1024-d).
+Notebook: [`experiments/FlowCLIP_encoding_comparison.ipynb`](../experiments/FlowCLIP_encoding_comparison.ipynb).
+
+Encodings compared:
+
+- `rgb` — 8 sampled frames → CLIP → mean-pool (RGB-only baseline)
+- `flow_xy` — flow_x, flow_y, magnitude packed into 3 channels (original FlowCLIP style)
+- `flow_hsv` — HSV / Middlebury color-coded flow (angle → hue, magnitude → value) → RGB image
+- `flow_temporal` — flow magnitude at start / mid / end packed into RGB channels
+
+### HMDB-51 (proof-of-concept split, seed 1, ViT-B/16, frozen backbone + linear probe) — top-1 %
+
+| encoding | flow-only | RGB + flow (fused) |
+|----------|-----------|--------------------|
+| RGB only (baseline) | — | **65.69** |
+| `flow_xy` | 15.69 | 62.91 |
+| `flow_hsv` | **17.97** | **63.24** |
+| `flow_temporal` | 12.09 | 62.58 |
+
+**Findings.**
+
+1. Among the flow encodings, `flow_hsv` is best in **both** the flow-only and
+   fused settings — consistent with the hypothesis that color-coding flow matches
+   the RGB distribution the frozen CLIP encoder was pretrained on.
+2. **No flow encoding beats the RGB-only baseline yet** (63.24 < 65.69). In a
+   frozen-encoder regime the flow stream does not overcome the distribution gap.
+   This is reported as a precise negative result, not omitted.
+
+**Caveats (read before citing).** Single proof-of-concept split, one seed
+(`seed=1`); top-1 only; no confidence intervals or multi-seed variance, so the
+small gaps between flow encodings are **directional, not publication-grade**.
+Run by S. Baride on Colab (A100), 2026-06. A publication-grade version needs the
+official 3-split HMDB-51 protocol (and UCF-101), multiple seeds, and ideally the
+end-to-end fine-tuning of §3 rather than a frozen-backbone probe.
